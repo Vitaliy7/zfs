@@ -1,0 +1,58 @@
+# zpool create otus1 mirror /dev/sdb /deb/sdc   #создаём пул из двух дисков в режиме RAID 1, повторяем три раза с другими дисками и разными названиями пула 
+# zfs set compression=gzip-9 otus1                   #добавляем алгоритм сжатия  gzip-9 на все пулы, повторяем три раза с другими пулами.
+Все вышеперечисленное интегрировано в Vagrantfile с помощью скрипта homework.sh и автоматически устанавливается при создании виртуальной машины. 
+
+
+# for i in {1..4}; do wget -P /otus$i https://gutenberg.org/cache/epub/2600/pg2600.converter.log; done    # скачиваем текст во все пулы
+# ll /otus*                                                        #проверяем, что файл скачался во все пулы
+
+/otus1:
+total 22005
+-rw-r--r--. 1 root root 40750827 Oct  2 08:07 pg2600.converter.log
+/otus2:
+total 17966
+-rw-r--r--. 1 root root 40750827 Oct  2 08:07 pg2600.converter.log
+/otus3:
+total 10945
+-rw-r--r--. 1 root root 40750827 Oct  2 08:07 pg2600.converter.log
+/otus4:
+total 39836
+-rw-r--r--. 1 root root 40750827 Oct  2 08:07 pg2600.converter.log
+# wget -O archive.tar.gz --no-check-certificate ‘https://drive.google.com/u/0/uc?id=1KRBNW33QWqbvbVHa3hLJivOAt60yukkg&export=download’     #скачиваем архив в домашнюю папку
+Saving to: ‘archive.tar.gz’
+ # tar -xzvf archive.tar.gz                                                                     #разархивируем
+zpoolexport/
+zpoolexport/filea
+zpoolexport/fileb                                                                    
+# zpool import -d zpoolexport/                                                             #проверяем возможность импорта данного каталога в наш пул
+pool: otus
+     id: 6554193320433390805
+  state: ONLINE
+ action: The pool can be imported using its name or numeric identifier.
+ config:
+ 
+        otus                         ONLINE
+          mirror-0                   ONLINE
+            /root/zpoolexport/filea  ONLINE
+            /root/zpoolexport/fileb  ONLINE      
+# zpool import -d zpoolexport/ otus                                                     #импортируем
+# zpool status                                                                                      #проверяем пул командой zpool status
+  pool: otus
+ state: ONLINE
+  scan: none requested
+config:
+ 
+        NAME                         STATE     READ WRITE CKSUM
+        otus                         ONLINE       0     0     0
+          mirror-0                   ONLINE       0     0     0
+            /root/zpoolexport/filea  ONLINE       0     0     0
+            /root/zpoolexport/fileb  ONLINE       0     0     0
+ 
+errors: No known data errors
+# wget -O otus_task2.file --no-check-certificate ‘https://drive.google.com/u/0/uc?id=1gH8gCL9y7Nd5Ti3IRmplZPF1XjzxeRAG&export=download’      #скачиваем файл, указанный в задании
+Saving to: ‘otus_task2.file’
+# zfs receive otus/test@today < otus_task2.file                                 #восстанавливаем файловую систему из снапшота
+# find /otus/test -name "secret_message"                                          #поиск файла "secret_message"
+/otus/test/task1/file_mess/secret_message
+# cat /otus/test/task1/file_mess/secret_message                               #просмотр файла "secret_message"
+https://github.com/sindresorhus/awesome
